@@ -9,5 +9,5 @@ with open('input', 'r') as inputFile:
 
 totals.sort()
 
-print('Part 1: {}'.format(max(totals)))
+print('Part 1: {}'.format(totals[-1]))
 print('Part 2: {}'.format(sum(totals[-3:])))
