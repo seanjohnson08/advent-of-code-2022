@@ -1,4 +1,5 @@
 import re
+from copy import deepcopy
 
 # [T]             [P]     [J]
 # [F]     [S]     [T]     [R]     [B]
@@ -21,14 +22,25 @@ stacks = list(map(list, [
     'RNFHW',
     'JZTQPRB'
 ]))
+stacks2 = deepcopy(stacks)
 
 lineParser = re.compile('move (\d+) from (\d+) to (\d+)')
 
+instructions = []
 with open('input', 'r') as file:
     for line in file:
-        [quantity, stack1, stack2] = map(int, lineParser.match(line).groups())
-        for i in range(0, quantity):
-            stacks[stack2 - 1].append(stacks[stack1 - 1].pop())
+       instructions.append([int(group) for group in lineParser.match(line).groups()])
+
+# Part 1
+for [quantity, stack1, stack2] in instructions:
+    for i in range(0, quantity):
+        stacks[stack2 - 1].append(stacks[stack1 - 1].pop())
+
+# Part2
+for [quantity, stack1, stack2] in instructions:
+    stacks2[stack2 - 1] += stacks2[stack1 - 1][-quantity:]
+    del stacks2[stack1 - 1][-quantity:]
 
 
 print('Part 1: {}'.format(''.join([stack[-1] for stack in stacks])))
+print('Part 2: {}'.format(''.join([stack[-1] for stack in stacks2])))
