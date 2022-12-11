@@ -1,45 +1,38 @@
 import re
-import pprint
 
 commandParser = re.compile('^\$ (cd|ls) ?(.*)')
 lsOutputParser = re.compile('^(dir|\d+) (.*)$')
 
+class Directory:
+    def __init__(self):
+        self.files = {}
+        self.dirs = {}
+        self.size = 0
 
 class FileSystem:
-    cwd = {
-        'files': {},
-        'dirs': {},
-        'size': 0,
-    }
+    cwd = Directory()
     root = cwd
-
-    def __init__(self):
-        pass
 
     def cd(self, path):
         if path == '/':
             self.cwd = self.root
         else:
-            self.cwd = self.cwd['dirs'][path]
+            self.cwd = self.cwd.dirs[path]
 
     def mkdir(self, path):
-        self.cwd['dirs'][path] = {
-            'files': {},
-            'dirs': {
-                '..': self.cwd
-            },
-            'size': 0
-        }
+        newDir = Directory()
+        newDir.dirs['..'] = self.cwd
+        self.cwd.dirs[path] = newDir
 
     def touch(self, file, size):
-        self.cwd['files'][file] = size
+        self.cwd.files[file] = size
         pointer = self.cwd
-        self.root['size'] += size
+        self.root.size += size
 
         # Add size of file to all parent dirs
-        while '..' in pointer['dirs']:
-            pointer['size'] += size
-            pointer = pointer['dirs']['..']
+        while pointer != self.root:
+            pointer.size += size
+            pointer = pointer.dirs['..']
 
 elfFileSystem = FileSystem()
 readLSOutput = False
@@ -69,19 +62,19 @@ with open('input', 'r') as file:
                 readLSOutput = True
 
 
-bytesToRemove = 30000000 - (70000000 - elfFileSystem.root['size'])
+bytesToRemove = 30000000 - (70000000 - elfFileSystem.root.size)
 part2Answer = 30000000
 
 def Traverse(size, dir = elfFileSystem.root):
     global part2Answer
     result = 0
-    if dir['size'] >= bytesToRemove and dir['size'] < part2Answer:
-        part2Answer = dir['size']
-    if dir['size'] <= size:
-        result += dir['size']
-    for cwd in dir['dirs']:
+    if dir.size >= bytesToRemove and dir.size < part2Answer:
+        part2Answer = dir.size
+    if dir.size <= size:
+        result += dir.size
+    for cwd in dir.dirs:
         if cwd == '..': continue
-        result += Traverse(size, dir['dirs'][cwd])
+        result += Traverse(size, dir.dirs[cwd])
     return result
 
 
