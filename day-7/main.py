@@ -7,7 +7,6 @@ lsOutputParser = re.compile('^(dir|\d+) (.*)$')
 
 class FileSystem:
     cwd = {
-        'path': '/',
         'files': {},
         'dirs': {},
         'size': 0,
@@ -25,7 +24,6 @@ class FileSystem:
 
     def mkdir(self, path):
         self.cwd['dirs'][path] = {
-            'path': self.cwd['path'] + path + '/',
             'files': {},
             'dirs': {
                 '..': self.cwd
@@ -70,14 +68,22 @@ with open('input', 'r') as file:
             elif command == 'ls':
                 readLSOutput = True
 
-def Part1(size, dir = elfFileSystem.root):
+
+bytesToRemove = 30000000 - (70000000 - elfFileSystem.root['size'])
+part2Answer = 30000000
+
+def Traverse(size, dir = elfFileSystem.root):
+    global part2Answer
     result = 0
+    if dir['size'] >= bytesToRemove and dir['size'] < part2Answer:
+        part2Answer = dir['size']
     if dir['size'] <= size:
         result += dir['size']
     for cwd in dir['dirs']:
         if cwd == '..': continue
-        result += Part1(size, dir['dirs'][cwd])
+        result += Traverse(size, dir['dirs'][cwd])
     return result
 
 
-print('Part 1: {}'.format(Part1(100000)))
+print('Part 1: {}'.format(Traverse(100000)))
+print('Part 2: {} - bytes to remove: {}'.format(part2Answer, bytesToRemove))
